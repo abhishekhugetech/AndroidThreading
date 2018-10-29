@@ -1,10 +1,12 @@
 package com.epiclancers.newprojectlearning;
 
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -17,9 +19,6 @@ public class MainActivity extends AppCompatActivity {
     Button button2;
     TextView textView;
     ProgressBar progressBar;
-    String finalValue;
-    String MESSAGE_KEY = "message_key";
-    Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,17 +29,6 @@ public class MainActivity extends AppCompatActivity {
         button2 = findViewById(R.id.button2);
         textView = findViewById(R.id.textView);
         progressBar = findViewById(R.id.progressBar);
-
-        handler = new Handler(Looper.getMainLooper()){
-            @Override
-            public void handleMessage(Message msg) {
-                Bundle bundle = msg.getData();
-                finalValue = bundle.getString(MESSAGE_KEY);
-                textView.setText( finalValue );
-                Toast.makeText(MainActivity.this, finalValue, Toast.LENGTH_SHORT).show();
-                showProgressBar(false);
-            }
-        };
 
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,23 +41,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 showProgressBar(true);
+                // Running the Async Task
+                SomeBackgroundTask task = new SomeBackgroundTask();
+                task.execute( "Rohan1" , "Ritik2" , "Raju3");
 
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        for (int i = 0 ; i < 100000 ; i ++ ){
-                            finalValue = i+"";
-                            System.out.println(finalValue);
-                        }
-                        Message message = new Message();
-                        Bundle bundle = new Bundle();
-                        bundle.putString( MESSAGE_KEY , "Hello there my friends, and the Number is " + finalValue);
-                        message.setData(bundle);
-                        handler.sendMessage(message);
-                    }
-                };
-                Thread thread = new Thread(runnable , "Abhishek's Thread");
-                thread.start();
             }
         });
 
@@ -85,6 +60,45 @@ public class MainActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
         }else{
             progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        System.out.println("My App" + " is Closed");
+    }
+
+    /*
+    Creating the Async Task class
+     */
+    class SomeBackgroundTask extends AsyncTask<String,String,String>{
+
+        private static final String TAG = "My App";
+
+        @Override
+        protected String doInBackground(String... strings) {
+            // Do all the Task in background
+            for (String key : strings){
+                Log.i(TAG, "The String is " + key);
+                try {
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            // Use this method to send data to onProgressUpdate method
+            publishProgress("User : " );
+            return null;
+        }
+
+        /*
+        Override this method which will give you the data that
+        you pass from publishProgress() method
+         */
+        @Override
+        protected void onProgressUpdate(String... values) {
+            Toast.makeText(MainActivity.this, values[0], Toast.LENGTH_SHORT).show();
         }
     }
 
